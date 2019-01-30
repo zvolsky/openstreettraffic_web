@@ -42,6 +42,7 @@ DATABASES = {
     'default': env.db('DATABASE_URL', default='postgres:///openstreettraffic_web'),
 }
 DATABASES['default']['ATOMIC_REQUESTS'] = True
+DATABASES['default']['ENGINE'] = 'django.contrib.gis.db.backends.postgis'
 
 # URLS
 # ------------------------------------------------------------------------------
@@ -72,6 +73,7 @@ THIRD_PARTY_APPS = [
 LOCAL_APPS = [
     'openstreettraffic_web.users.apps.UsersAppConfig',
     # Your stuff: custom apps go here
+    'openstreettraffic',
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
