@@ -339,4 +339,6 @@ openstreettraffic_web/media/
 
 .pytest_cache/
 
+#
 
+*GeoLite2-*.mmdb
