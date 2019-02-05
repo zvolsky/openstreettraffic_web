@@ -45,6 +45,11 @@ if settings.DEBUG:
             kwargs={"exception": Exception("Page not Found")},
         ),
         path("500/", default_views.server_error),
+
+        # openstreettraffic_web custom
+
+        # my_ip app
+        path("my_ip/", include('my_ip.urls')),
     ]
     if "debug_toolbar" in settings.INSTALLED_APPS:
         import debug_toolbar

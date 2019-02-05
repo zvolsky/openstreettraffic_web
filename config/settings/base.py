@@ -10,6 +10,7 @@ APPS_DIR = ROOT_DIR.path('openstreettraffic_web')
 env = environ.Env()
 
 READ_DOT_ENV_FILE = env.bool('DJANGO_READ_DOT_ENV_FILE', default=False)
+
 if READ_DOT_ENV_FILE:
     # OS environment variables take precedence over variables from .env
     env.read_env(str(ROOT_DIR.path('.env')))
@@ -75,6 +76,11 @@ LOCAL_APPS = [
     # Your stuff: custom apps go here
     'openstreettraffic',
 ]
+
+if DEBUG:
+    LOCAL_APPS += [
+        'my_ip',
+    ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
