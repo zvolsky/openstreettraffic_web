@@ -9,8 +9,10 @@ import requests
 # from django.shortcuts import render
 
 from django.conf import settings
-from django.http import HttpResponse
+#from django.http import HttpResponse
+from django.shortcuts import render
 from django.templatetags.static import static
+from django.utils.safestring import mark_safe
 
 
 IPIFY = 'https://api.ipify.org'
@@ -22,6 +24,7 @@ GEODAT = os.path.join(*GEOROOT + ('GeoLite2-City/GeoLite2-City.mmdb',))
     # updated on the first Tuesday of each month
 GEOREADER = geoip2.database.Reader(GEODAT)
 #ASNREADER = geoip2.database.Reader(ASNDAT)
+MAPS = 'https://mapy.cz?x={long}&y={lat}&z=11'
 
 
 def _geo_location(ip):
@@ -30,13 +33,18 @@ def _geo_location(ip):
         country = geo.country.name
         city = geo.city.name
     except geoip2.errors.AddressNotFoundError:
-        country = city = ''
+        geo = country = city = ''
     #try:
     #    asn = ASNREADER.asn(ip)
     #    org = asn.autonomous_system_organization
     #except geoip2.errors.AddressNotFoundError:
     #    org = ''
-    return ' '.join(filter(None, (country, city)))  # , org
+    place = ' '.join(filter(None, (country, city)))  # , org)))
+    if geo and geo.location:
+        mapurl = MAPS.format(lat=geo.location.latitude, long=geo.location.longitude)
+        return mark_safe('<a href="{mapurl}">{place}</a>'.format(mapurl=mapurl, place=place))
+    else:
+        return place
 
 
 def _get_client_ip(request):
@@ -58,26 +66,31 @@ def index(request):
     ifconfig enp0s31f6 up
     '''
 
-    rip = _get_client_ip(request)
+    ctx = {}
+
+    ctx['rip'] = rip = _get_client_ip(request)
 
     try:
-        pip = requests.get(IPIFY).text
+        ctx['pip'] = pip = requests.get(IPIFY).text
     except requests.ConnectionError:
-        pip = None
+        ctx['pip'] = pip = None
 
-    rgeo = _geo_location(rip)
-    pgeo = _geo_location(pip)
+    ctx['rgeo'] = _geo_location(rip)
+    ctx['pgeo'] = _geo_location(pip)
 
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
         s.connect(("8.8.8.8", 80))
-        lip = s.getsockname()[0]
+        ctx['lip'] = s.getsockname()[0]
     except OSError:
-        lip = None
+        ctx['lip'] = None
     s.close()
 
+    return render(request, 'my_ip/index.html', ctx)
+    '''
     return HttpResponse("Request IP: {rip} {rgeo}<br>"
                         "Public IP: {pip} {pgeo}<br>"
                         "Local IP: {lip}".format(rip=rip, rgeo=rgeo, pip=pip, pgeo=pgeo, lip=lip) +
                         '<br><br><i>This product includes GeoLite2 data created by MaxMind, '
                         'available from <a href="https://www.maxmind.com">www.maxmind.com</a></i>')
+    '''
